@@ -1,0 +1,68 @@
+## Imports
+
+# others
+import json
+import os
+import time
+
+# data cleaning
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+
+# pandas
+import pandas as pd
+from pandas import Series,DataFrame
+
+# numpy, matplotlib, seaborn
+import numpy as np
+
+
+## Load description categories dictionary (used in solutions below)
+os.chdir('C:\\Users\\antonin\\Desktop\\')
+# Reading the json as a dict
+with open('dict.json') as json_data:
+    category_name = json.load(json_data)
+
+
+## Solution #1 approximate matching based on Levenshtein distance, cut-off based on % matching
+## Slowest solution (depending on the number of items in your dict, this can take a VERY LONG time)
+def convert_category(row):
+    abbrev = process.extractOne(row["Description"],choices=category_name.keys(),score_cutoff=65)
+    if abbrev:
+        return category_name[abbrev[0]]
+    return np.nan
+
+df['abbrev'] = df.apply(convert_category, axis=1)
+
+
+## Solution #2 for exact matches
+## Fastest solution
+df.loc[df.col1.isin(di), 'col2'] = df['col1'].map(di)
+
+
+## Solution for partial matches based on substrings (top most substrings will get assigned first!!!)
+## Best solution for this case since it's the most accurate one
+pd.options.mode.chained_assignment = None  # default='warn'
+df3 = pd.DataFrame()
+df["Category"] = np.nan
+
+# start_time = time.time()
+for key, value in category_name.items():
+    mask = np.column_stack([df['Description'].str.contains(key, na=False) for col in df])
+    df2 = df.loc[mask.any(axis=1)]
+    df2['Category'].notnull
+    df2["Category"] = df2["Category"].fillna(value)
+    df3 = df3.combine_first(df2)
+    
+# print("--- %s seconds ---" % (time.time() - start_time))
+
+## can be done in a same way as description categories, but there are usually not that many columns
+df3 = df.rename(columns = {'Proc. Person':'Proc_Person',
+                          'Respective EE':'Respective',
+                          'Ticket Raised (month)':'Raised_Month',
+                          'Ticket Raised (week)':'Raised_Week',
+                          'Ticket Raised (Hour)':'Raised_Hour',
+                          'Company LE':'Company',
+                          'Last Update - Tick.Creation':'Duration',
+                          'Category-NEW':'Category_New',
+                         })
