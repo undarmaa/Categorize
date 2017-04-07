@@ -1,6 +1,5 @@
 # Categorize
 categorizer - input text and dictionary, and script assigns categories based on dict
-work in progress
 
 goal is to have several was of the same process
 
